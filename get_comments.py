@@ -30,7 +30,7 @@ def get_n_reviews(appid, n=100):
 
     return reviews
 
-reviews = get_n_reviews('105600', 20)
+reviews = get_n_reviews('620', 20)
 
 with open('reviews.txt', 'w') as f:
     for review in reviews:
