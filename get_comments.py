@@ -1,4 +1,5 @@
 import requests
+from bs4 import BeautifulSoup
 
 def get_reviews(appid, params):
         url = 'https://store.steampowered.com/appreviews/'
@@ -30,9 +31,35 @@ def get_n_reviews(appid, n=100):
 
     return reviews
 
-reviews = get_n_reviews('620', 20)
+def get_game_name(appid):
+    cookies = {'birthtime': '568022401'} # To bypass age check
+    response = requests.get(url=f'https://store.steampowered.com/app/{appid}', headers={'User-Agent': 'Mozilla/5.0'}, cookies=cookies)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    return soup.find(id='appHubAppName').text
+
+
+def get_n_appids(n=1, filter_by='topsellers'):
+    appids = []
+    url = f'https://store.steampowered.com/search/?category1=998&filter={filter_by}&page='
+    page = 0
+
+    while page*25 < n:
+        page += 1
+        response = requests.get(url=url+str(page), headers={'User-Agent': 'Mozilla/5.0'})
+        soup = BeautifulSoup(response.text, 'html.parser')
+        for row in soup.find_all(class_='search_result_row'):
+            appids.append(row['data-ds-appid'])
+
+    return appids[:n]
+
+reviews = []
+for appid in get_n_appids(3):
+    print(appid)
+    reviews.append({'review':'GameName = ' + get_game_name(appid)})
+    reviews += get_n_reviews(appid, 2)
 
 with open('reviews.txt', 'w') as f:
     for review in reviews:
          f.write(review['review'] + '\n__review_end__\n')
+
     
