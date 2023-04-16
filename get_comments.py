@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import json
 
 def get_reviews(appid, params):
         url = 'https://store.steampowered.com/appreviews/'
@@ -28,6 +29,10 @@ def get_n_reviews(appid, n=100):
         reviews += response['reviews']
 
         if len(response['reviews']) < 100: break
+    
+    # Store reviews in a list not a dict
+    return [review['review'] for review in reviews]
+    
 
     return reviews
 
@@ -52,14 +57,14 @@ def get_n_appids(n=1, filter_by='topsellers'):
 
     return appids[:n]
 
-reviews = []
+reviews = {}
 for appid in get_n_appids(3):
     print(appid)
-    reviews.append({'review':'GameName = ' + get_game_name(appid)})
-    reviews += get_n_reviews(appid, 2)
+    reviews[get_game_name(appid)] = get_n_reviews(appid, 2)
 
-with open('reviews.txt', 'w') as f:
-    for review in reviews:
-         f.write(review['review'] + '\n__review_end__\n')
+# export reviews as json
+with open('reviews.json', 'w') as f:
+    json.dump(reviews, f)
+
 
     
