@@ -14,7 +14,7 @@ def get_n_reviews(appid, n=100):
             'json' : 1,
             'filter' : 'all',
             'language' : 'english',
-            'day_range' : 365,
+            'day_range' : 9223372036854775807,
             'review_type' : 'all',
             'purchase_type' : 'all'
             }
@@ -29,12 +29,22 @@ def get_n_reviews(appid, n=100):
         reviews += response['reviews']
 
         if len(response['reviews']) < 100: break
-    
-    # Store reviews in a list not a dict
-    return [review['review'] for review in reviews]
-    
 
+    reviews = [review['review'] for review in reviews]
+    
+    return clean_reviews(reviews)
+
+def clean_reviews(reviews):
+    # Remove non-ascii characters
+    reviews = [review.encode('ascii', 'ignore').decode('ascii') for review in reviews]
+    # Remove newlines
+    reviews = [review.replace('\n', ' ') for review in reviews]
+    # Remove too short reviews
+    reviews = [review for review in reviews if len(review) > 200]
+    # Delete words that are too long
+    reviews = [review for review in reviews if len(max(review.split(' '), key=len)) < 20]
     return reviews
+
 
 def get_game_name(appid):
     cookies = {'birthtime': '568022401'} # To bypass age check
@@ -60,9 +70,8 @@ def get_n_appids(n=1, filter_by='topsellers'):
 reviews = {}
 for appid in get_n_appids(3):
     print(appid)
-    reviews[get_game_name(appid)] = get_n_reviews(appid, 2)
+    reviews[get_game_name(appid)] = get_n_reviews(appid, 20)
 
-# export reviews as json
 with open('reviews.json', 'w') as f:
     json.dump(reviews, f)
 
