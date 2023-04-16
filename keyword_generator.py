@@ -16,11 +16,10 @@ basePrompt = [{
     Don't generate too many keywords, just the most important ones.
     Don't responde with anything that is not a keyword, if there is no keyword write "None".
     Keywords should be general keywords for the game, not specific to a certain review.
-    All keywords should be things that can be shared by multiple games.
     Don't write sentences, just write keywords.
     Use commas as separators.
     Example keywords: Multiplayer, Co-op, PVP, FPS, RPG, hours of gameplay, regular updates, 2D, 3D, puzzle, action, adventure, crafting, survival, sandbox, etc.
-    Don't write unrelated keywords, like "fun" or "good".
+    Keywords must be common game keywords or categories that can be shared by multiple games.
     """,
 }]
 
@@ -80,5 +79,5 @@ def get_keywords_for_reviews():
 
 if __name__ == "__main__":
     reviewsdict = get_keywords_for_reviews()
-    with open('keywords.json', 'w') as f:
+    with open('keywords2.json', 'w') as f:
         json.dump(reviewsdict, f, indent=4)
