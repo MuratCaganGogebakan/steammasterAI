@@ -79,5 +79,5 @@ def get_keywords_for_reviews():
 
 if __name__ == "__main__":
     reviewsdict = get_keywords_for_reviews()
-    with open('keywords2.json', 'w') as f:
+    with open('keywords.json', 'w') as f:
         json.dump(reviewsdict, f, indent=4)

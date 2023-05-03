@@ -17,6 +17,7 @@ def get_n_reviews(appid, n=100):
             'day_range' : 9223372036854775807,
             'review_type' : 'all',
             'purchase_type' : 'all'
+
             }
 
     while n > 0:
@@ -68,9 +69,9 @@ def get_n_appids(n=1, filter_by='topsellers'):
     return appids[:n]
 
 reviews = {}
-for appid in get_n_appids(10):
+for appid in get_n_appids(500):
     print(appid)
-    reviews[get_game_name(appid)] = get_n_reviews(appid, 20)
+    reviews[get_game_name(appid)] = get_n_reviews(appid, 25)
 
 with open('reviews.json', 'w') as f:
     json.dump(reviews, f)
