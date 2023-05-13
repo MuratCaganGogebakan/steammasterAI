@@ -69,7 +69,7 @@ def get_n_appids(n=1, filter_by='topsellers'):
     return appids[:n]
 
 reviews = {}
-for appid in get_n_appids(500):
+for appid in get_n_appids(1000):
     print(appid)
     reviews[get_game_name(appid)] = get_n_reviews(appid, 25)
 
