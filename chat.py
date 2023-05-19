@@ -25,12 +25,20 @@ docsearch = Pinecone.from_existing_index(index_name=index_name, embedding=embedd
 llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
 chain = load_qa_chain(llm, chain_type="stuff")
 
-def reccomend_game(query):
-    query = "Reccomend a game like this:" + query
-    docs = docsearch.similarity_search(query, include_metadata=True)
-    answer = chain.run(input_documents=docs, question=query)
-    return answer
+def reccomend_games(query, k=10):
+    docs = docsearch.similarity_search_with_score(query, k)
+    answers = []
+    #reccomended_games = []
+    for i in range(k):
+        first_docs = docs[i:i+1]
+        first_docs = [doc[0] for doc in first_docs]
+        print(first_docs)
+        #reccomend_games.append(first_docs[0])
+        query = "Recommend this game to me. Make relations to my query: " + query
+        answer = chain.run(input_documents=first_docs, question=query)
+        answers.append(answer)
+        #print(answer)
+    return answers
 
 query = input("Describe a game you would like to play: ")
-answer = reccomend_game(query)
-print(answer)
+reccomend_games(query)

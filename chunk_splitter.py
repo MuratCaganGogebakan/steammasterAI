@@ -22,24 +22,20 @@ def aggregate_reviews(reviews):
 
 # Read reviews from json file
 def read_reviews():
-    with open('reviews.json', 'r') as f:
+    with open('reviews_1000.json', 'r') as f:
         reviewsdict = json.load(f)
     return reviewsdict
 
 def chunk_reviews(reviewsdict):
-    chunks = []
+    chunks = {}
     for game in reviewsdict:
-        #print(game)
         combined_reviews = aggregate_reviews(split_reviews(reviewsdict[game]))
-        for review in combined_reviews:
-            review = game + ": " + review
-            chunks.append(review)
+        chunks[game] = combined_reviews
     return chunks
 
 if __name__ == "__main__":
-    # output chunks as text file
+    # output chunks as json file
     chunks = chunk_reviews(read_reviews())
-    with open('chunks.txt', 'w') as f:
-        for chunk in chunks:
-            f.write(chunk + '\n')
+    with open('chunks.json', 'w') as f:
+        json.dump(chunks, f)
     
