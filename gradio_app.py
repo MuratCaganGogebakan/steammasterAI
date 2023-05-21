@@ -1,3 +1,4 @@
+import gradio as gr
 from langchain.document_loaders import UnstructuredPDFLoader, OnlinePDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma, Pinecone
@@ -15,8 +16,8 @@ PINECONE_API_ENV = os.environ['PINECONE_API_ENV']
 
 embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
 pinecone.init(
-    api_key=PINECONE_API_KEY,  # find at app.pinecone.io
-    environment=PINECONE_API_ENV  # next to api key in console
+    api_key=PINECONE_API_KEY,
+    environment=PINECONE_API_ENV
 )
 index_name = "langchain" 
 
@@ -29,8 +30,6 @@ def reccommend_game(query, game_name):
     game_docs = docsearch.similarity_search(query, k=5, filter={"game": game_name})
     query = "Reccommend this game to me, If you wouldn't reccommend it always start your answer wtih a No. Make relations to my query: " + query
     answer = chain.run(input_documents=game_docs, question=query)
-
-    # TODO: If answer is no, reccommend another game
     return answer
 
 def reccomend_games(query, k=5):
@@ -38,9 +37,14 @@ def reccomend_games(query, k=5):
     games = []
     for i in range(len(docs)):
         games.append(docs[i][0].metadata["game"][0])
-    
-    # TODO: Reccommend multiple games
     return reccommend_game(query, games[0])
 
-query = input("Describe a game you would like to play: ")
-print(reccomend_games(query))
+iface2 = gr.Interface(
+    fn=reccomend_games,
+    inputs=[
+        gr.inputs.Textbox(lines=2, placeholder="Enter your query here...", label="Your Query"),
+        gr.inputs.Slider(1, 10, label="Number of Games")
+    ],
+    outputs="text"
+)
+iface2.launch()
