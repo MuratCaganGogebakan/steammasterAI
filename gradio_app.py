@@ -42,8 +42,7 @@ def reccomend_games(query, k=5):
 iface2 = gr.Interface(
     fn=reccomend_games,
     inputs=[
-        gr.inputs.Textbox(lines=2, placeholder="Enter your query here...", label="Your Query"),
-        gr.inputs.Slider(1, 10, label="Number of Games")
+        gr.inputs.Textbox(lines=2, placeholder="Describe a game you would like", label="Game Description"),
     ],
     outputs="text"
 )
