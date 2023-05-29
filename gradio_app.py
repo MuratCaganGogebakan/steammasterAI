@@ -28,27 +28,52 @@ chain = load_qa_chain(llm, chain_type="stuff")
 
 def recommend_game(query, game_name):
     game_docs = docsearch.similarity_search(query, k=5, filter={"game": game_name})
-    query = "Reccommend this game to me, If you wouldn't reccommend it always start your answer wtih a No. Make relations to my query: " + query
+    query = "Unless the game is completly unrelated to the input recommend it and start your answer with 'Yes'. If you definetly can't recommend it startwith No. Take the gamename from metadata. Make relations to my query: " + query
     answer = chain.run(input_documents=game_docs, question=query)
     return answer
 
+def generate_score_dict(docs):
+    game_scores = {}
+    for doc, score in docs:
+        game_name = doc.metadata['game'][0]
+        if game_name in game_scores:
+            game_scores[game_name].append(score)
+        else:
+            game_scores[game_name] = [score]
+    return game_scores
+
+
 def recommend_games(query, k=5):
-    docs = docsearch.similarity_search_with_score(query, k)
+    docs = docsearch.similarity_search_with_score(query, 100)
     games = []
-    for i in range(len(docs)):
-        games.append(docs[i][0].metadata["game"][0])
-    # Make the games unique
-    games = list(set(games))
+    similarity_scores = generate_score_dict(docs)
+    seen = set()
+    for doc, score in docs:
+        game_name = doc.metadata["game"][0]
+        if game_name not in seen:
+            games.append(game_name)
+            seen.add(game_name)
     recommendations = []
+    counter = 0
     for game in games:
-        recommendations.append(recommend_game(query, game))
-    formatted_recommendations = [f"## {i+1}. {games[i]}\n\n{recommendation}" for i, recommendation in enumerate(recommendations)]  # add index, markdown formatting and new lines
+        recommendation = recommend_game(query, game)
+        print(recommendation)
+        if recommendation.lower().strip().startswith("yes"):
+            recommendations.append(recommendation[6:])
+            counter += 1
+        if counter >= k:
+            break
+    formatted_recommendations = [
+        f"## {i+1}. {games[i]} (Similarity Score: {max(similarity_scores[games[i]]):.2%})\n\n{recommendation}"
+        for i, recommendation in enumerate(recommendations)
+    ]  # add index, game title, maximum similarity score, markdown formatting, and new lines
     return "\n".join(formatted_recommendations)
 
 iface2 = gr.Interface(
     fn=recommend_games,
     inputs=[
         gr.inputs.Textbox(lines=2, placeholder="Describe a game you would like", label="Game Description"),
+        gr.inputs.Slider(minimum=1, maximum=10, step=1, default=5, label="Number Games to Recommend"),
     ],
     outputs="markdown"
 )
