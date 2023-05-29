@@ -8,6 +8,19 @@ from langchain.chains.question_answering import load_qa_chain
 import pinecone
 import os
 import dotenv
+from langchain.chat_models import ChatOpenAI
+from langchain import PromptTemplate, LLMChain
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    SystemMessagePromptTemplate,
+    AIMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
+from langchain.schema import (
+    AIMessage,
+    HumanMessage,
+    SystemMessage
+)
 
 dotenv.load_dotenv('env')
 OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
@@ -23,14 +36,18 @@ index_name = "langchain"
 
 docsearch = Pinecone.from_existing_index(index_name=index_name, embedding=embeddings)
 
-llm = OpenAI(temperature=0, openai_api_key=OPENAI_API_KEY)
-chain = load_qa_chain(llm, chain_type="stuff")
+chat = ChatOpenAI(temperature=0)
 
 def recommend_game(query, game_name):
     game_docs = docsearch.similarity_search(query, k=5, filter={"game": game_name})
-    query = "Unless the game is completly unrelated to the input recommend it and start your answer with 'Yes'. If you definetly can't recommend it startwith No. Take the gamename from metadata. Make relations to my query: " + query
-    answer = chain.run(input_documents=game_docs, question=query)
-    return answer
+    game_docs_content = " ".join(doc.page_content for doc in game_docs)
+    game_docs_metadata = "Metadata: " + str(game_docs[0].metadata) if game_docs else ""
+    messages = [
+        SystemMessage(content="""Unless the game reviews are too negative start your answer with 'Yes'. Don't say the game name in your response. Describe the game in your recommendation. Don't write in the first person."""),
+        HumanMessage(content=game_docs_content + " " + game_docs_metadata)
+    ]
+    answer = chat(messages)
+    return answer.content 
 
 def generate_score_dict(docs):
     game_scores = {}
@@ -55,16 +72,18 @@ def recommend_games(query, k=5):
             seen.add(game_name)
     recommendations = []
     counter = 0
+    recommend_games = []
     for game in games:
         recommendation = recommend_game(query, game)
         print(recommendation)
         if recommendation.lower().strip().startswith("yes"):
-            recommendations.append(recommendation[6:])
+            recommendations.append(recommendation[4:])
+            recommend_games.append(game)
             counter += 1
         if counter >= k:
             break
     formatted_recommendations = [
-        f"## {i+1}. {games[i]} (Similarity Score: {max(similarity_scores[games[i]]):.2%})\n\n{recommendation}"
+        f"## {i+1}. {recommend_games[i]} (Similarity Score: {max(similarity_scores[recommend_games[i]]):.2%})\n\n{recommendation}"
         for i, recommendation in enumerate(recommendations)
     ]  # add index, game title, maximum similarity score, markdown formatting, and new lines
     return "\n".join(formatted_recommendations)
