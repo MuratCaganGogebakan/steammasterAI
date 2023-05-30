@@ -61,7 +61,7 @@ def generate_score_dict(docs):
 
 
 def recommend_games(query, k=5):
-    docs = docsearch.similarity_search_with_score(query, 100)
+    docs = docsearch.similarity_search_with_score(query, 200)
     games = []
     similarity_scores = generate_score_dict(docs)
     seen = set()
@@ -70,6 +70,8 @@ def recommend_games(query, k=5):
         if game_name not in seen:
             games.append(game_name)
             seen.add(game_name)
+    # Add the last game to the list
+    games.append(docs[-1][0].metadata["game"][0])
     recommendations = []
     counter = 0
     recommend_games = []
@@ -77,11 +79,14 @@ def recommend_games(query, k=5):
         recommendation = recommend_game(query, game)
         print(recommendation)
         if recommendation.lower().strip().startswith("yes"):
-            recommendations.append(recommendation[:])
+            recommendations.append(recommendation[5:])
             recommend_games.append(game)
             counter += 1
         if counter >= k:
             break
+    # Recommend the 100th game
+    recommendations.append(recommend_game(query, games[-1])[5:])
+    recommend_games.append(games[-1])
     formatted_recommendations = [
         f"## {i+1}. {recommend_games[i]} (Similarity Score: {max(similarity_scores[recommend_games[i]]):.2%})\n\n{recommendation}"
         for i, recommendation in enumerate(recommendations)
