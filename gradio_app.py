@@ -43,7 +43,7 @@ def recommend_game(query, game_name):
     game_docs_content = " ".join(doc.page_content for doc in game_docs)
     game_docs_metadata = "Metadata: " + str(game_docs[0].metadata) if game_docs else ""
     messages = [
-        SystemMessage(content="""Unless the game reviews are too negative start your answer with 'Yes'. Don't say the game name in your response. Describe the game in your recommendation. Don't write in the first person."""),
+        SystemMessage(content="Unless the game is completely unrelated to the input recommend it and start your answer with 'Yes'. If you definitely can't recommend it start with No. Don't say the game name in your response. Describe the game in your recommendation. Don't write in the first person. Don't say 'I recommend' or 'I don't recommend' start the desccription right after the Yes or No."),
         HumanMessage(content=game_docs_content + " " + game_docs_metadata)
     ]
     answer = chat(messages)
@@ -77,7 +77,7 @@ def recommend_games(query, k=5):
         recommendation = recommend_game(query, game)
         print(recommendation)
         if recommendation.lower().strip().startswith("yes"):
-            recommendations.append(recommendation[4:])
+            recommendations.append(recommendation[:])
             recommend_games.append(game)
             counter += 1
         if counter >= k:
@@ -96,4 +96,4 @@ iface2 = gr.Interface(
     ],
     outputs="markdown"
 )
-iface2.launch()
+iface2.launch(auth=("username", "password"))
