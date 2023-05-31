@@ -1,23 +1,11 @@
 import gradio as gr
-from langchain.document_loaders import UnstructuredPDFLoader, OnlinePDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma, Pinecone
+from langchain.vectorstores import Pinecone
 from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.llms import OpenAI
-from langchain.chains.question_answering import load_qa_chain
 import pinecone
 import os
 import dotenv
 from langchain.chat_models import ChatOpenAI
-from langchain import PromptTemplate, LLMChain
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    SystemMessagePromptTemplate,
-    AIMessagePromptTemplate,
-    HumanMessagePromptTemplate,
-)
 from langchain.schema import (
-    AIMessage,
     HumanMessage,
     SystemMessage
 )
