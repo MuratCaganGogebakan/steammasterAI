@@ -47,8 +47,31 @@ def generate_score_dict(docs):
             game_scores[game_name] = [score]
     return game_scores
 
+def recommend_least_similar_games(query, k=5):
+    docs = docsearch.similarity_search_with_score(query, 5134)
+    games = []
+    similarity_scores = generate_score_dict(docs)
+    seen = set()
+    for doc, score in docs:
+        game_name = doc.metadata["game"][0]
+        if game_name not in seen:
+            games.append(game_name)
+            seen.add(game_name)
+    recommendations = []
+    counter = 0
+    recommended_games = []
+    for game in reversed(games):
+        recommendation = recommend_game(query, game)
+        print(recommendation)
+        if recommendation.lower().strip().startswith("yes"):
+            recommendations.append(recommendation[5:])
+            recommended_games.append(game)
+            counter += 1
+        if counter >= k:
+            break
+    return recommendations, similarity_scores, recommended_games
 
-def recommend_games(query, k=5):
+def recommend_most_similar_games(query, k=5):
     docs = docsearch.similarity_search_with_score(query, 200)
     games = []
     similarity_scores = generate_score_dict(docs)
@@ -58,25 +81,27 @@ def recommend_games(query, k=5):
         if game_name not in seen:
             games.append(game_name)
             seen.add(game_name)
-    # Add the last game to the list
-    games.append(docs[-1][0].metadata["game"][0])
     recommendations = []
     counter = 0
-    recommend_games = []
+    recommended_games = []
     for game in games:
         recommendation = recommend_game(query, game)
         print(recommendation)
         if recommendation.lower().strip().startswith("yes"):
             recommendations.append(recommendation[5:])
-            recommend_games.append(game)
+            recommended_games.append(game)
             counter += 1
         if counter >= k:
             break
-    # Recommend the 100th game
-    recommendations.append(recommend_game(query, games[-1])[5:])
-    recommend_games.append(games[-1])
+    return recommendations, similarity_scores, recommended_games
+
+def recommend_games(query, k=5, least_similar=False):
+    if least_similar:
+        recommendations, similarity_scores, recommended_games = recommend_least_similar_games(query, k)
+    else:
+        recommendations, similarity_scores, recommended_games = recommend_most_similar_games(query, k)
     formatted_recommendations = [
-        f"## {i+1}. {recommend_games[i]} (Similarity Score: {max(similarity_scores[recommend_games[i]]):.2%})\n\n{recommendation}"
+        f"## {i+1}. {recommended_games[i]} (Similarity Score: {max(similarity_scores[recommended_games[i]]):.2%})\n\n{recommendation}"
         for i, recommendation in enumerate(recommendations)
     ]  # add index, game title, maximum similarity score, markdown formatting, and new lines
     return "\n".join(formatted_recommendations)
@@ -86,6 +111,7 @@ iface2 = gr.Interface(
     inputs=[
         gr.inputs.Textbox(lines=2, placeholder="Describe a game you would like", label="Game Description"),
         gr.inputs.Slider(minimum=1, maximum=10, step=1, default=5, label="Number Games to Recommend"),
+        gr.inputs.Checkbox(default=False, label="Recommend Least Similar Games")
     ],
     outputs="markdown"
 )
