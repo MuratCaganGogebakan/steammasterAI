@@ -128,19 +128,15 @@ def recommend_games(query, k=5, least_similar=False):
     
     return "\n".join(formatted_recommendations)
 
-
-
-
-
 iface2 = gr.Interface(
     fn=recommend_games,
     inputs=[
         gr.inputs.Textbox(lines=2, placeholder="Describe a game you would like", label="Game Description"),
-        gr.inputs.Slider(minimum=1, maximum=10, step=1, default=5, label="Number Games to Recommend"),
+        gr.inputs.Slider(minimum=1, maximum=10, step=1, default=5, label="Number of Games to Recommend"),
         gr.inputs.Checkbox(default=False, label="Recommend Least Similar Games")
     ],
-    outputs="markdown"
+    outputs="markdown",
+    flagging_options=[("👍      Like", "Like"), ("👎      Dislike", "Dislike")]
 )
-
 #iface2.launch(auth=("username", "password"))
 iface2.launch()
