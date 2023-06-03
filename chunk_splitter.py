@@ -11,6 +11,7 @@ def split_reviews(reviews):
 
 def aggregate_reviews(reviews):
     combined_reviews = []
+    incomplete_chunks = []
     for review in reviews:
         if combined_reviews == []:
             combined_reviews.append(review)
@@ -18,7 +19,16 @@ def aggregate_reviews(reviews):
             combined_reviews[-1] += review
         elif len(combined_reviews[-1]) > 1500:
             combined_reviews.append(review)
+        else:
+            incomplete_chunks.append(review)
+    for chunk in incomplete_chunks:
+        if len(combined_reviews[-1]) + len(chunk) < 2000:
+            combined_reviews[-1] += chunk
+        else:
+            combined_reviews.append(chunk)
     return combined_reviews
+
+
 
 # Read reviews from json file
 def read_reviews():
@@ -36,6 +46,6 @@ def chunk_reviews(reviewsdict):
 if __name__ == "__main__":
     # output chunks as json file
     chunks = chunk_reviews(read_reviews())
-    with open('chunks.json', 'w') as f:
+    with open('chunks_test2.json', 'w') as f:
         json.dump(chunks, f)
     

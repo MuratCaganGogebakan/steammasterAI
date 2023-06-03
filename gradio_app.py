@@ -33,7 +33,7 @@ def recommend_game(query, game_name):
     game_docs_content = " ".join(doc.page_content for doc in game_docs)
     game_docs_metadata = "Metadata: " + str(game_docs[0].metadata) if game_docs else ""
     messages = [
-        SystemMessage(content="Unless the game is completely unrelated to the input recommend it and start your answer with 'Yes'. If you definitely can't recommend it start with No. Don't say the game name in your response. Describe the game in your recommendation. Don't write in the first person. Don't say 'I recommend' or 'I don't recommend' start the desccription right after the Yes or No."),
+        SystemMessage(content="Unless the game is too bad, ALWAYS start your answer with 'Yes'. Otherwise, start with No. Describe the game in your response in a positive way without overdoing it. Don't write in the first person. Don't say 'I recommend' or 'I don't recommend' start the desccription right after the Yes or No."),
         HumanMessage(content=game_docs_content + " " + game_docs_metadata)
     ]
     answer = chat(messages)
@@ -61,7 +61,7 @@ def generate_score_dict(docs):
     return game_scores
 
 def recommend_least_similar_games(query, k=5):
-    docs = docsearch.similarity_search_with_score(query, 5134)
+    docs = docsearch.similarity_search_with_score(query, 10839)
     games = []
     similarity_scores = generate_score_dict(docs)
     seen = set()
@@ -127,7 +127,7 @@ def recommend_games(query, k=5, least_similar=False):
         formatted_recommendations.append(formatted_recommendation)
     
     return "\n".join(formatted_recommendations)
-
+  
 iface2 = gr.Interface(
     fn=recommend_games,
     inputs=[
