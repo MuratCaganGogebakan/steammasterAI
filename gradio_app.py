@@ -136,8 +136,8 @@ description="""
 iface2 = gr.Interface(
     fn=recommend_games,
     inputs=[
-        gr.inputs.Textbox(lines=2, placeholder="Write your game description here.", label="Describe a game you would like:"),
-        gr.inputs.Slider(minimum=1, maximum=5, default=3,step=1, label="Number of Games to Recommend"),
+        gr.inputs.Textbox(lines=2, placeholder="Describe a game you would like:", label="Game Description"),
+        gr.inputs.Slider(minimum=1, maximum=5, default=3, step=1, label="Number of Games to Recommend"),
     ],
     outputs="markdown",
     examples=[
@@ -157,4 +157,4 @@ iface2 = gr.Interface(
     submit_button="Get Recommendations"
 )
 
-iface2.launch(auth=("testuser", "password"))
+iface2.launch(auth=("testuser", "password"), share=True)
